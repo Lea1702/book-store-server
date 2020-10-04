@@ -99,7 +99,7 @@ router.post('/book/create', passport.authenticate('jwt', { session: false }), as
     }
 })
 
-router.post('/book/update', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+router.put('/book/update', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     try {
         if (req.user.type === "customer"){
             res.status(404).json({ message: 'Only admin can update a book' });
@@ -108,6 +108,20 @@ router.post('/book/update', passport.authenticate('jwt', { session: false }), as
         let book = await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: book_id}});
         console.log("book : ", book);
         res.json("updated"); 
+    }
+    catch(err){
+        res.status(404).json({ message: `${err}` });
+    }
+})
+
+router.delete('/book/delete', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+    try {
+        if (req.user.type === "customer"){
+            res.status(404).json({ message: 'Only admin can update a book' });
+        }
+        const { book_id} = req.body
+        let book = await Book.destroy({where: {id: book_id}});
+        res.json("deleted"); 
     }
     catch(err){
         res.status(404).json({ message: `${err}` });
