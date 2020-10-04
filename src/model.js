@@ -16,10 +16,6 @@ User.init(
       type: Sequelize.STRING,
       allowNull: false
     },
-    purchasedBooks:{
-      type:Sequelize.ARRAY(Sequelize.TEXT),
-      allowNull: true
-    },
     type: {
       type: Sequelize.ENUM('customer', 'admin'),
       allowNull: false
@@ -53,10 +49,33 @@ Book.init(
   }
 );
 
+class UserToBook extends Sequelize.Model {}
+UserToBook.init(
+  {
+    user_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    },
+    book_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    }
+  },
+  {
+    sequelize,
+    modelName: 'UserToBook'
+  }
+);
+
+User.hasMany(UserToBook, {foreignKey:'user_id'})
+UserToBook.belongsTo(User)
+Book.hasMany(UserToBook, {foreignKey:'book_id'})
+UserToBook.belongsTo(Book)
 
 
 module.exports = {
   sequelize,
   User,
-  Book
+  Book,
+  UserToBook
 };

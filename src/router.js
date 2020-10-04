@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const {sequelize, User, Book} = require('./model')
+const {sequelize, User, Book, UserToBook} = require('./model')
 const {getUser} = require('./middleware/getUser')
 const app = express();
 app.use(bodyParser.json());
@@ -63,10 +63,28 @@ router.get('/books', passport.authenticate('jwt', { session: false }), async (re
 })
 
 router.get('/books/purchased', passport.authenticate('jwt', { session: false }), async (req, res) =>{
-    const purchasedBooksTitles = await User.findOne({attributes: ['purchasedBooks'], where: {id: req.user.id}});
-    console.log("purchasedBooksTitles : ", purchasedBooksTitles);
-    res.json(purchasedBooksTitles);
+    const purchasedBooksTitles = await UserToBook.findAll({attributes: ['book_id'], where: {user_id: req.user.id}});
+    const parsedPurchasedBooksTitles = purchasedBooksTitles.map((titles) => titles.get({ plain: true }));
+    console.log("parsedPurchasedBooksTitles : ", parsedPurchasedBooksTitles);
+    res.json(parsedPurchasedBooksTitles);
 })
+
+router.post('/books/purchase', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+    try {
+        const {book_id} = req.body
+        let userToBook = await UserToBook.findOne({where : { [Op.and] : [{book_id:  book_id}, {user_id:req.user.id}]}});
+        if (userToBook) {
+            res.status(404).json({ message: "book already purchased" });
+        }
+        let newUserToBook = await UserToBook.create({book_id:  book_id, user_id:req.user.id});
+        res.json("purchased"); 
+    }
+    catch(err){
+        res.status(404).json({ message: `${err}` });
+    }
+
+})
+
 
 
 

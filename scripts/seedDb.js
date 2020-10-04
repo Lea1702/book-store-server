@@ -1,4 +1,4 @@
-const { Book, User } = require('../src/model');
+const { Book, User, UserToBook } = require('../src/model');
 
 /* WARNING THIS WILL DROP THE CURRENT DATABASE */
 seed();
@@ -7,20 +7,19 @@ async function seed() {
   // create tables
   await Book.sync({ force: true });
   await User.sync({ force: true });
+  await UserToBook.sync({ force: true });
   //insert data
   await Promise.all([
     User.create({
       id: 1,
       email: 'harry.potter@gmail.com',
       password: 'Wizard',
-      purchasedBooks: ['Harry Potter', 'Orphan X'],
       type: 'customer'
     }),
     User.create({
       id: 2,
       email: 'johnsnow@gmail.com',
       password: 'Bla',
-      purchasedBooks: ['MrKnowAll'], 
       type: 'customer'
     }),
     User.create({
@@ -40,6 +39,10 @@ async function seed() {
       title: 'MrKnowAll',
       publisher: 'Unknown',
       author: 'Bla'
+    }),
+    UserToBook.create({
+      user_id:1,
+      book_id: 1
     })
   ]);
 }

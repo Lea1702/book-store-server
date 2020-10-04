@@ -52,7 +52,7 @@ module.exports.saveUser = async function (email, password, type) {
         password: await userAccountsUtils.hashPassword(password),
     };
     try {
-        const newUser = await User.create({ email: newUserToCreate.email,  password: newUserToCreate.password, type: type});
+        const newUser = await User.create({ email: newUserToCreate.email,  password: newUserToCreate.password, type: type, purchasedBooks: []});
         console.log("newUser's auto-generated ID:", newUser.id);
 
     }
