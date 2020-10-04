@@ -82,7 +82,21 @@ router.post('/books/purchase', passport.authenticate('jwt', { session: false }),
     catch(err){
         res.status(404).json({ message: `${err}` });
     }
+})
 
+router.post('/book/create', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+    try {
+        if (req.user.type === "customer"){
+            res.status(404).json({ message: 'Only admin can create a book' });
+        }
+        const {title, publisher, author} = req.body
+        let book = await Book.create({title:  title, publisher:publisher, author: author});
+        console.log("book : ", book);
+        res.json("created"); 
+    }
+    catch(err){
+        res.status(404).json({ message: `${err}` });
+    }
 })
 
 
