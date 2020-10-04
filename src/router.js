@@ -99,6 +99,21 @@ router.post('/book/create', passport.authenticate('jwt', { session: false }), as
     }
 })
 
+router.post('/book/update', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+    try {
+        if (req.user.type === "customer"){
+            res.status(404).json({ message: 'Only admin can update a book' });
+        }
+        const {title, publisher, author, book_id} = req.body
+        let book = await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: book_id}});
+        console.log("book : ", book);
+        res.json("updated"); 
+    }
+    catch(err){
+        res.status(404).json({ message: `${err}` });
+    }
+})
+
 
 
 
