@@ -16,6 +16,7 @@ const router = express.Router();
 
 
 const cors=require('cors');
+const { user } = require('osenv');
 app.use(cors());
 
 app.use(passport.initialize());
@@ -59,6 +60,12 @@ router.get('/books', passport.authenticate('jwt', { session: false }), async (re
     const booksList = await Book.findAll({attributes: ['title']});
     const parsedBooksTitles = booksList.map((titles) => titles.get({ plain: true }));
     res.json(parsedBooksTitles);
+})
+
+router.get('/books/purchased', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+    const purchasedBooksTitles = await User.findOne({attributes: ['purchasedBooks'], where: {id: req.user.id}});
+    console.log("purchasedBooksTitles : ", purchasedBooksTitles);
+    res.json(purchasedBooksTitles);
 })
 
 

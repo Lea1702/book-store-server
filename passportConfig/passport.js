@@ -15,8 +15,6 @@ console.log("secretOrKey : ", opts.secretOrKey);
 module.exports = function(passport){ // will look in authorization header  for " JWT token_string..."
     console.log("in here");
     passport.use(new JwtStrategy(opts, async function(jwt_payload, done) {
-        console.log("jwt_payload : ", jwt_payload);
-        console.log("jwt_payload.userId : ", jwt_payload.userId);
         try{
             const user = await Users.getUserById(jwt_payload.userId);
             if (user) {
