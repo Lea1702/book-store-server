@@ -11,8 +11,8 @@ const passwordValidator = require('password-validator')
 
 
 module.exports.getUserById = async function (userId) {
-    const userResult = await  User.findOne({where: {id: userId}})
-    return userResult[0];
+    const userResult = await User.findOne({where: {id: userId}})
+    return userResult;
 };
 
 module.exports.login = async function (email, password) {
@@ -23,7 +23,9 @@ module.exports.login = async function (email, password) {
         if (!match) throw new Error('wrong password');
         const token = jwt.sign({ userId: userResult.id }, secret);
         let userToReturn = userResult;
+        console.log("userToReturn : ", userToReturn);
         userToReturn.token = token;
+        console.log("userToReturn.token : ", userToReturn.token);
         return userToReturn;
     }
 };
