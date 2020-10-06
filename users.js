@@ -23,17 +23,13 @@ module.exports.login = async function (email, password) {
         if (!match) throw new Error('wrong password');
         const token = jwt.sign({ userId: userResult.id }, secret);
         let userToReturn = userResult;
-        console.log("userToReturn : ", userToReturn);
         userToReturn.token = token;
-        console.log("userToReturn.token : ", userToReturn.token);
         return userToReturn;
     }
 };
 
 module.exports.passwordCheck = function (plainPassword, hashPassword) {
     return new Promise((res, rej) => {
-        console.log("plain password : ", plainPassword);
-        console.log("hashPassword : ", hashPassword);
         bcrypt.compare(plainPassword, hashPassword, function (err, respond) {
             if (err) rej(err);
             res(respond);
@@ -53,7 +49,6 @@ module.exports.saveUser = async function (email, password, type) {
     };
     try {
         const newUser = await User.create({ email: newUserToCreate.email,  password: newUserToCreate.password, type: type, purchasedBooks: []});
-        console.log("newUser's auto-generated ID:", newUser.id);
 
     }
     catch (error) {
@@ -62,7 +57,6 @@ module.exports.saveUser = async function (email, password, type) {
 };
 
 module.exports.checkValidation = function (email, password) {
-    console.log("password : ", password);
     var schema = new passwordValidator();
     schema
         .is().min(8)                                    // Minimum length 8

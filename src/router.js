@@ -40,10 +40,7 @@ router.post('/register', async function (req, res) {
 
 
 router.post('/login', async function (req, res) {
-    console.log("login");
     const { email, password } = req.body;
-    console.log("email : ", email);
-    console.log("password : ", password);
     try {
         const user = await Users.login(email, password);
         res.status(200).json({
@@ -56,16 +53,15 @@ router.post('/login', async function (req, res) {
     }
 });
 
-router.get('/books', passport.authenticate('jwt', { session: false }), async (req, res) =>{
-    const booksList = await Book.findAll({attributes: ['title']});
-    const parsedBooksTitles = booksList.map((titles) => titles.get({ plain: true }));
+router.get('/books', async (req, res) =>{
+    const booksList = await Book.findAll();
+    const parsedBooksTitles = booksList.map((books) => books.get({ plain: true }));
     res.json(parsedBooksTitles);
 })
 
 router.get('/books/purchased', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     const purchasedBooksTitles = await UserToBook.findAll({attributes: ['book_id'], where: {user_id: req.user.id}});
     const parsedPurchasedBooksTitles = purchasedBooksTitles.map((titles) => titles.get({ plain: true }));
-    console.log("parsedPurchasedBooksTitles : ", parsedPurchasedBooksTitles);
     res.json(parsedPurchasedBooksTitles);
 })
 
@@ -74,7 +70,7 @@ router.post('/books/purchase', passport.authenticate('jwt', { session: false }),
         const {book_id} = req.body
         let userToBook = await UserToBook.findOne({where : { [Op.and] : [{book_id:  book_id}, {user_id:req.user.id}]}});
         if (userToBook) {
-            res.status(404).json({ message: "book already purchased" });
+            res.json({ message: "book already purchased" });
         }
         let newUserToBook = await UserToBook.create({book_id:  book_id, user_id:req.user.id});
         res.json("purchased"); 
@@ -91,7 +87,6 @@ router.post('/book/create', passport.authenticate('jwt', { session: false }), as
         }
         const {title, publisher, author} = req.body
         let book = await Book.create({title:  title, publisher:publisher, author: author});
-        console.log("book : ", book);
         res.json("created"); 
     }
     catch(err){
@@ -104,9 +99,8 @@ router.put('/book/update', passport.authenticate('jwt', { session: false }), asy
         if (req.user.type === "customer"){
             res.status(404).json({ message: 'Only admin can update a book' });
         }
-        const {title, publisher, author, book_id} = req.body
-        let book = await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: book_id}});
-        console.log("book : ", book);
+        const {title, publisher, author, id} = req.body
+        let book = await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: id}});
         res.json("updated"); 
     }
     catch(err){
@@ -114,21 +108,18 @@ router.put('/book/update', passport.authenticate('jwt', { session: false }), asy
     }
 })
 
-router.delete('/book/delete', passport.authenticate('jwt', { session: false }), async (req, res) =>{
+router.delete('/book/delete/:id', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     try {
         if (req.user.type === "customer"){
             res.status(404).json({ message: 'Only admin can update a book' });
         }
-        const { book_id} = req.body
-        let book = await Book.destroy({where: {id: book_id}});
+        const  {id} = req.params;
+        let book = await Book.destroy({where: {id: id}});
         res.json("deleted"); 
     }
     catch(err){
         res.status(404).json({ message: `${err}` });
     }
 })
-
-
-
 
 module.exports = router;
