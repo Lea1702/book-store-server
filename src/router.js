@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const {sequelize, User, Book, UserToBook} = require('./model')
-const {getUser} = require('./middleware/getUser')
+const {sequelize, Book, UserToBook} = require('./model')
 const app = express();
 app.use(bodyParser.json());
 app.set('sequelize', sequelize)
@@ -13,7 +12,6 @@ const passport = require("passport");
 const jwt = require('jsonwebtoken');
 const formatUser = require('../helpers/userResponseFormat');
 const router = express.Router();
-
 
 const cors=require('cors');
 const { user } = require('osenv');
@@ -34,7 +32,7 @@ router.post('/register', async function (req, res) {
         })
     }
     catch (err) {
-        res.status(500).json({ message: `Failed at registration, ${err}` });
+        res.status(404).json({ message: `Failed at registration, ${err}` });
     }
 });   
 
@@ -49,7 +47,7 @@ router.post('/login', async function (req, res) {
         });
     }
     catch (error) {
-        res.status(500).json({ message: `${error}` });
+        res.status(404).json({ message: `${error}` });
     }
 });
 
@@ -60,8 +58,12 @@ router.get('/books', async (req, res) =>{
 })
 
 router.get('/books/purchased', passport.authenticate('jwt', { session: false }), async (req, res) =>{
-    const purchasedBooksTitles = await UserToBook.findAll({attributes: ['book_id'], where: {user_id: req.user.id}});
-    const parsedPurchasedBooksTitles = purchasedBooksTitles.map((titles) => titles.get({ plain: true }));
+    const purchasedBooksIds = await UserToBook.findAll({attributes: ['book_id'], where: {user_id: req.user.id}});
+    const parsedPurchasedBooksIds = purchasedBooksIds.map((ids) => ids.get({ plain: true }).book_id);
+    const purchasedBooksTitles = await Book.findAll({attributes: ['title', 'id'], where: {id:  {
+        [Op.in]: parsedPurchasedBooksIds
+      }}});
+    const parsedPurchasedBooksTitles = purchasedBooksTitles.map((title) => title.get({ plain: true }));
     res.json(parsedPurchasedBooksTitles);
 })
 
@@ -70,9 +72,9 @@ router.post('/books/purchase', passport.authenticate('jwt', { session: false }),
         const {book_id} = req.body
         let userToBook = await UserToBook.findOne({where : { [Op.and] : [{book_id:  book_id}, {user_id:req.user.id}]}});
         if (userToBook) {
-            res.json({ message: "book already purchased" });
+            res.status(404).json({ message: "book already purchased" });
         }
-        let newUserToBook = await UserToBook.create({book_id:  book_id, user_id:req.user.id});
+        await UserToBook.create({book_id:  book_id, user_id:req.user.id});
         res.json("purchased"); 
     }
     catch(err){
@@ -83,11 +85,13 @@ router.post('/books/purchase', passport.authenticate('jwt', { session: false }),
 router.post('/book/create', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     try {
         if (req.user.type === "customer"){
-            res.status(404).json({ message: 'Only admin can create a book' });
+            res.json({ message: 'Only admin can create a book' });
         }
-        const {title, publisher, author} = req.body
-        let book = await Book.create({title:  title, publisher:publisher, author: author});
-        res.json("created"); 
+        else{
+            const {title, publisher, author} = req.body
+            await Book.create({title:  title, publisher:publisher, author: author});
+            res.json({ message:"Successfully created"}); 
+        }
     }
     catch(err){
         res.status(404).json({ message: `${err}` });
@@ -97,11 +101,13 @@ router.post('/book/create', passport.authenticate('jwt', { session: false }), as
 router.put('/book/update', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     try {
         if (req.user.type === "customer"){
-            res.status(404).json({ message: 'Only admin can update a book' });
+            res.json({ message: 'Only admin can update a book' });
         }
-        const {title, publisher, author, id} = req.body
-        let book = await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: id}});
-        res.json("updated"); 
+        else {
+            const {title, publisher, author, id} = req.body
+            await Book.update({title:  title, publisher:publisher, author: author} ,{where: {id: id}});
+            res.json({ message:"Successfully updated"}); 
+        }
     }
     catch(err){
         res.status(404).json({ message: `${err}` });
@@ -111,11 +117,13 @@ router.put('/book/update', passport.authenticate('jwt', { session: false }), asy
 router.delete('/book/delete/:id', passport.authenticate('jwt', { session: false }), async (req, res) =>{
     try {
         if (req.user.type === "customer"){
-            res.status(404).json({ message: 'Only admin can update a book' });
+            res.json({ message: 'Only admin can update a book' });
         }
-        const  {id} = req.params;
-        let book = await Book.destroy({where: {id: id}});
-        res.json("deleted"); 
+        else{
+             const {id} = req.params;
+             await Book.destroy({where: {id: id}});
+             res.json({ message:"Successfully deleted"}); 
+        }
     }
     catch(err){
         res.status(404).json({ message: `${err}` });

@@ -3,6 +3,7 @@ const formatUser = function(user){
         userId: (user.id),
         email: user.email,
         token: user.token,
+        type: user.type
     };
     return formattedUser;
 };

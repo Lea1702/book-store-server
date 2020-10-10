@@ -5,12 +5,9 @@ ExtractJwt = require('passport-jwt').ExtractJwt;
 
 const  opts = {}
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme("jwt");
-//setting the secret key defined in the config (database.js file)
 opts.secretOrKey = secret ;
 
-//JWT
-
-module.exports = function(passport){ // will look in authorization header  for " JWT token_string..."
+module.exports = function(passport){
     passport.use(new JwtStrategy(opts, async function(jwt_payload, done) {
         try{
             const user = await Users.getUserById(jwt_payload.userId);
@@ -24,7 +21,4 @@ module.exports = function(passport){ // will look in authorization header  for "
             return done(err, false);
         }
     }));
-// facebook token and google token
-
-
 };

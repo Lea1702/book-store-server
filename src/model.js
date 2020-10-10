@@ -72,7 +72,6 @@ UserToBook.belongsTo(User)
 Book.hasMany(UserToBook, {foreignKey:'book_id'})
 UserToBook.belongsTo(Book)
 
-
 module.exports = {
   sequelize,
   User,

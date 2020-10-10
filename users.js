@@ -6,9 +6,8 @@ const { User} = require('./src/model');
 
 
 //validtors
-const validator = require('validator')
-const passwordValidator = require('password-validator')
-
+const validator = require('validator');
+const passwordValidator = require('password-validator');
 
 module.exports.getUserById = async function (userId) {
     const userResult = await User.findOne({where: {id: userId}})
@@ -17,7 +16,7 @@ module.exports.getUserById = async function (userId) {
 
 module.exports.login = async function (email, password) {
     const userResult = await User.findOne({where: {email: email}})
-    if (userResult.length === 0) throw new Error('User email does not exist');
+    if (!userResult) throw new Error('User email does not exist');
     else {
         let match = await this.passwordCheck(password, userResult.password);
         if (!match) throw new Error('wrong password');
@@ -39,6 +38,9 @@ module.exports.passwordCheck = function (plainPassword, hashPassword) {
 
 module.exports.saveUser = async function (email, password, type) {
     const notValidResult = this.checkValidation(email, password)
+    if (type !== "admin" && type !== "customer") {
+        throw new Error("The type has to be cutsomer or admin");
+    }
     if (notValidResult)
         throw new Error(notValidResult)
     const userResult = await User.findOne({where: {email: email}})
